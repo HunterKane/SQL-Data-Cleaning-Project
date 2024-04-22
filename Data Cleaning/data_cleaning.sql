@@ -216,9 +216,21 @@ SELECT *
 FROM layoffs_staging2 
 WHERE industry IS NULL;
 
--- Bally's Interactive did not change
+/*
+Bally's Interactive did not change
+After research it was found that Bally's Interactive is in the gaming industry
+Update the industry to gaming 
+*/
 
+-- Update to Gaming 
+UPDATE layoffs_staging2
+SET industry = 'gaming'
+WHERE industry IS NULL;
 
+-- Review changes 
+SELECT *
+FROM layoffs_staging2
+WHERE industry LIKE 'gaming%';
 
 
 -- Review other columns with missing values 
@@ -229,6 +241,31 @@ AND percentage_laid_off IS NULL;
 
 
 /*
+Deleting total laid off and percentage laid off are NULL
+Keeping this data would effect the EDA
+*/ 
+
+-- Delete NULLs 
+DELETE 
+FROM layoffs_staging2
+WHERE total_laid_off IS NULL
+AND percentage_laid_off IS NULL;
+
+-- Review columns
+SELECT *
+FROM layoffs_staging2 
+WHERE total_laid_off IS NULL
+AND percentage_laid_off IS NULL;
 
 
+-- Drop row_num column as it doesn't add any value (also to the EDA process)
+ALTER TABLE layoffs_staging2
+DROP COLUMN row_num;
+
+SELECT *
+FROM layoffs_staging2;
+
+
+/*
+Data cleaning has been completed 
 */ 

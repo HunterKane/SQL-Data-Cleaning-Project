@@ -280,12 +280,10 @@ Explore each column to identify patterns in the data and answer questions regard
 
 - When did these layoffs occur?
 - What industry has had the most layoffs?
-- Dates of layoffs (is there a particular pattern for timing of layoffs?)
-- What industry is least effected by layoffs? 
-- How does this vary by countries?
-- Does funding influence if layoffs increase or decreases? 
-
-
+- Dates of layoffs (is there a particular pattern for the timing of layoffs?)
+- What industry is least affected by layoffs? 
+- How does this vary by country?
+- Does funding influence if layoffs increase or decrease? 
 
 */ 
 -- Pull up data for Review 
@@ -335,11 +333,11 @@ ORDER BY 2 DESC;
 
 /*
 Top 5 industries effected by layoffs are 
-Consumer	45182
-Retail	43613
-Other	36289
-Transportation	33748
-Finance	28344
+Consumer - 45182
+Retail - 43613
+Other - 36289
+Transportation - 33748
+Finance - 28344
 */
 
 -- By country 
@@ -360,5 +358,48 @@ ORDER BY 1 DESC;
 SELECT YEAR(`date`), SUM(total_laid_off)
 FROM layoffs_staging2 
 GROUP BY YEAR(`date`)
-ORDER BY 1 DESC;  
+ORDER BY 2 DESC;  
+/*
+2022 had the highest layoffs, 2021 was the lowest.   
+However for 2023 we only have 3 montsh worth of data but the total is 125,677 total layoffs already 
+*/
 
+SELECT YEAR(`date`), SUM(total_laid_off)
+FROM layoffs_staging2 
+GROUP BY YEAR(`date`)
+ORDER BY 2 DESC; 
+
+-- Stage of companies with the most layoffs 
+SELECT stage, SUM(total_laid_off)
+FROM layoffs_staging2
+GROUP BY stage
+ORDER BY 2 DESC;
+-- Post IPO had the most with 204,132
+-- Subsidary & SEED had the least
+
+-- Total Layoffs with each month throughout the years (ignore NULLS)
+SELECT substring(`date`,1,7) AS `Month`, sum(total_laid_off)
+FROM layoffs_staging2
+WHERE substring(`date`,1,7) IS NOT NULL
+GROUP BY `Month`
+ORDER BY 1 ASC; 
+
+-- There are a total of 383,659 layoffs. How is this spread across by months, and years?  
+SELECT sum(total_laid_off)
+FROM layoffs_staging2; 
+
+/*
+Create a rolling total of layoffs to show each month and year to see how it adds to the total amount  
+*/
+
+WITH Rolling_Total AS
+( 
+SELECT substring(`date`,1,7) AS `Month`, sum(total_laid_off) As total_layoffs
+FROM layoffs_staging2
+WHERE substring(`date`,1,7) IS NOT NULL
+GROUP BY `Month`
+ORDER BY 1 ASC
+)
+SELECT `Month`, total_layoffs
+, sum(total_layoffs) OVER (ORDER BY `Month`) As rolling_total 
+FROM Rolling_Total; 

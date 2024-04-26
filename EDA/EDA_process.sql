@@ -384,7 +384,7 @@ WHERE substring(`date`,1,7) IS NOT NULL
 GROUP BY `Month`
 ORDER BY 1 ASC; 
 
--- There are a total of 383,659 layoffs. How is this spread across by months, and years?  
+-- There are a total of 383,159 (383,659 layoffs including nulls). How is this spread across by months, and years?  
 SELECT sum(total_laid_off)
 FROM layoffs_staging2; 
 
@@ -402,4 +402,43 @@ ORDER BY 1 ASC
 )
 SELECT `Month`, total_layoffs
 , sum(total_layoffs) OVER (ORDER BY `Month`) As rolling_total 
-FROM Rolling_Total; 
+FROM Rolling_Total;
+-- Year 2022 had the worst layoffs comparative to the the from 96821 to 257482 rolling total 
+
+
+-- Can include percentage column to better understand the impact of layoffs for a certain month and year 
+WITH Rolling_Total AS
+( 
+    SELECT 
+        SUBSTRING(`date`, 1, 7) AS `Month`, 
+        SUM(total_laid_off) AS total_layoffs
+    FROM layoffs_staging2
+    WHERE SUBSTRING(`date`, 1, 7) IS NOT NULL
+    GROUP BY `Month`
+    ORDER BY 1 ASC
+)
+SELECT 
+    `Month`, 
+    total_layoffs,
+    ROUND((total_layoffs / SUM(total_layoffs) OVER ()) * 100, 2) AS percentage_of_total,
+    SUM(total_layoffs) OVER (ORDER BY `Month`) AS rolling_total 
+FROM Rolling_Total;
+-- 2023-01 had the highest percentage of layoffs around the world
+
+-- Which country had the highest layoffs 
+SELECT country, SUM(total_laid_off)
+FROM layoffs_staging2
+GROUP BY country
+ORDER BY 2 DESC;
+-- America had the majority of layoffs ( 256559 out of 383,659 = 67% total ) 
+
+-- Which company laid off the most by year 
+SELECT company, YEAR (`date`), SUM(total_laid_off)
+FROM layoffs_staging2
+GROUP BY company, YEAR(`date`)
+ORDER BY 3 DESC;
+
+/*
+So far most layoffs come from America within the large companies Amazon, Google, Meta and Microsoft.   
+2023 had the highest layoff percentage despite it only have 3 months recorded in that year. 
+*/
